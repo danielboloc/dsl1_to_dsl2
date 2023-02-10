@@ -73,6 +73,22 @@ def find_functions(mainfile):
         print(match.group(0))
 
 # find channels outside conditionalds
+def find_channels_out_conditionals(mainfile):
+    """Go over a main.nf file and get all channels outside of if, else if, or else"""
+    find_channels_regex = r"^Channel(\s+)?\n(\s+)\.(.*?)\.(set|into)(\s+)?\{(\s+)?(.*?)\}"
+    matches = re.finditer(find_channels_regex, "".join(mainfile), re.MULTILINE | re.DOTALL)
+    for matchNum, match in enumerate(matches):
+        channel_name = match.group(7).strip().split(";")[0]
+        channel_def = match.group(0)
+        channel_w_name = re.sub(r"Channel\n(\s+)?", f"{channel_name} = Channel", channel_def)
+        channel_wo_set = re.sub(r"(\s+)?\.set(\s+)?\{(\s+)?(.*?)(\s+)?\}", "", channel_w_name)
+        channel_wo_into = re.sub(r"(\s+)?\.into(\s+)?\{(\s+)?(.*?)\}", "", channel_wo_set, re.MULTILINE)
+        print(channel_wo_into)
+
+    # find_oneliner_functions_regex = r"^def\s+(?!summary)(\w+)(\s+)?=(\s+)?(.*?)\n"
+    # matches_oneliners = re.finditer(find_oneliner_functions_regex, "".join(mainfile), re.MULTILINE | re.DOTALL)
+    # for matchNum, match in enumerate(matches_oneliners):
+    #     print(match.group(0))
 
 
 def go_over_conditionals(mainfile):
@@ -108,10 +124,11 @@ print("FUNCTIONS")
 find_functions(mainfile)
 print("PARAM CHECKS")
 inputs, execution, parameter_check = go_over_conditionals(mainfile)
-print("\n".join(inputs))
-print("\n".join(execution))
-print("\n".join(parameter_check))
-
+#print("\n".join(inputs))
+#print("\n".join(execution))
+#print("\n".join(parameter_check))
+print("CHANNELS")
+find_channels_out_conditionals(mainfile)
 
 env = Environment(
     loader=FileSystemLoader("."),
